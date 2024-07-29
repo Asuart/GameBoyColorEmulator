@@ -18,6 +18,10 @@ void CursorPosCallback(GLFWwindow* window, double x, double y) {
 	emulatorWindow.HandleMouseMove(x, y);
 }
 
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int modes) {
+	emulatorWindow.HandleKeyEvent(key, scancode, action);
+}
+
 int main(int argc, char** argv) {
 	std::ios_base::sync_with_stdio(false);
 
@@ -25,6 +29,7 @@ int main(int argc, char** argv) {
 	glfwSetDropCallback(emulatorWindow.m_mainWindow, DropCallback);
 	glfwSetMouseButtonCallback(emulatorWindow.m_mainWindow, MouseButtonCallback);
 	glfwSetCursorPosCallback(emulatorWindow.m_mainWindow, CursorPosCallback);
+	glfwSetKeyCallback(emulatorWindow.m_mainWindow, KeyCallback);
 
 	if (argc > 2) {
 		std::cout << "Programm uses first argument as a path to a ROM file. All other are ignored.\n";

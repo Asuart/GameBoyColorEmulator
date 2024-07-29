@@ -27,8 +27,10 @@ public:
 	void HandleResolutionChange(uint32_t width, uint32_t height);
 	void HandleMouseEvent(int32_t button, int32_t action);
 	void HandleMouseMove(double x, double y);
+	void HandleKeyEvent(int32_t key, int32_t scancode, int32_t action);
+	bool IsPaused();
 
-private:
+protected:
 	uint32_t m_width;
 	uint32_t m_height;
 	GBCEmulator m_emulator;
@@ -37,6 +39,9 @@ private:
 	ButtonMap m_buttonMap;
 	double m_targetFPS = 60.0;
 	double m_targetFrameTime = 1.0 / m_targetFPS;
+	bool m_isRebindingKey = false;
+	EmulatorButton m_keyToRebind = EmulatorButton::A;
+	bool m_paused = false;
 
 	void UpdateScreen();
 	void UpdateKeyStates();

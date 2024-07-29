@@ -17,7 +17,7 @@ public:
 	void SetCursorPosition(int32_t x, int32_t y);
 	void Click();
 
-private:
+protected:
 	EmulatorWindow& m_parent;
 	GBCEmulator& m_emulator;
 	uint32_t m_width;
@@ -27,4 +27,7 @@ private:
 	PixieUI::Menu* m_menu;
 	PixieUI::Element* m_sideArea;
 	PixieUI::Window* m_settingsWindow;
+	bool m_windowOpened = false;
+
+	friend class EmulatorWindow;
 };

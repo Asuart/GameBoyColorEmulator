@@ -90,6 +90,29 @@ void EmulatorWindow::HandleMouseMove(double x, double y) {
 	m_ui->SetCursorPosition(layoutX, layoutY);
 }
 
+void EmulatorWindow::HandleKeyEvent(int32_t key, int32_t scancode, int32_t action) {
+	if (action == GLFW_PRESS) {
+		if (m_isRebindingKey) {
+			m_isRebindingKey = false;
+			if (key == GLFW_KEY_ESCAPE) return;
+			m_buttonMap.mappings[(uint32_t)m_keyToRebind] = key;
+			SaveSettings();
+			return;
+		}
+
+		if (key == m_buttonMap.mappings[(uint32_t)EmulatorButton::Reset]) {
+			m_emulator.Reset();
+		}
+
+		if (!m_paused && key == m_buttonMap.mappings[(uint32_t)EmulatorButton::Pause]) {
+			m_paused = true;
+		}
+		else if (m_paused && key == m_buttonMap.mappings[(uint32_t)EmulatorButton::Resume]) {
+			m_paused = false;
+		}
+	}
+}
+
 bool EmulatorWindow::LoadROM(const std::string& romPath) {
 	std::cout << "Loading rom: \"" << romPath << "\"\n";
 	std::ifstream reader(romPath, std::ios::in | std::ifstream::binary | std::fstream::ate);
@@ -261,7 +284,7 @@ void EmulatorWindow::Start() {
 		glfwPollEvents();
 		UpdateKeyStates();
 
-		m_emulator.Run(GBCEmulator::FrameCycles);
+		if(!IsPaused()) m_emulator.Run(GBCEmulator::FrameCycles);
 
 		UpdateScreen();
 
@@ -320,4 +343,8 @@ void EmulatorWindow::UpdateKeyStates() {
 
 bool EmulatorWindow::ButtonIsPressed(EmulatorButton button) {
 	return glfwGetKey(m_mainWindow, m_buttonMap.mappings[(uint32_t)button]) == GLFW_PRESS;
+}
+
+bool EmulatorWindow::IsPaused() {
+	return m_paused || m_ui->m_windowOpened;
 }
