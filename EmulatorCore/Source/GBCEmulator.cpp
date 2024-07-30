@@ -42,8 +42,6 @@ void GBCEmulator::ResetFrameReadyFlag() {
 SaveState GBCEmulator::GetSaveState() {
 	SaveState state("test");
 
-
-
 	uint32_t cursor = 0;
 	uint8_t* saveState = new uint8_t[saveStateSize];
 
@@ -68,11 +66,6 @@ SaveState GBCEmulator::GetSaveState() {
 		cursor += 8;
 		};
 
-	// bus
-	write8(bus.IF);
-	write8(bus.IE);
-	write8(bus.key1);
-
 	// cpu
 	write16(cpu.AF);
 	write16(cpu.BC);
@@ -80,9 +73,12 @@ SaveState GBCEmulator::GetSaveState() {
 	write16(cpu.HL);
 	write16(cpu.SP);
 	write16(cpu.SP);
+	write8(cpu.IF);
+	write8(cpu.IE);
 	write8(cpu.IME);
 	write8(cpu.isHalting);
 	write8(cpu.haltBug);
+	write8(cpu.key1);
 
 	// dma
 	write8(dma.OAM);
@@ -107,7 +103,7 @@ SaveState GBCEmulator::GetSaveState() {
 }
 
 bool GBCEmulator::LoadSaveState(const SaveState& saveState) {
-
+	return false;
 }
 
 MMC* GBCEmulator::CreateMMC(MMCType type) {

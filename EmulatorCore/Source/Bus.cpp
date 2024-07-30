@@ -4,10 +4,6 @@ Bus::Bus(MMC* mmc, DMA& dma, Joypad& joypad1, Timer& timer, SPU& spu, PPU& ppu, 
 	: mmc(mmc), dma(dma), joypad1(joypad1), timer(timer), spu(spu), ppu(ppu), cpu(cpu) {}
 
 void Bus::Reset() {
-	IF = 0xe1;
-	IE = 0x00;
-	key1 = 0x0;
-
 	mmc->Reset();
 	dma.Reset();
 	joypad1.Reset();
@@ -18,7 +14,7 @@ void Bus::Reset() {
 }
 
 void Bus::TriggerInterruption(Interruption interruption) {
-	IF |= (uint8_t)interruption;
+	cpu.IF |= (uint8_t)interruption;
 }
 
 uint8_t Bus::Read8(uint16_t  address, bool isDMAAccess) {
@@ -53,7 +49,7 @@ uint8_t Bus::Read8(uint16_t  address, bool isDMAAccess) {
 		case 0x07:
 			return timer.ReadTAC();
 		case 0x0f:
-			return IF;
+			return cpu.IF;
 		case 0x10:
 			return spu.ReadNR10();
 		case 0x11:
@@ -124,7 +120,7 @@ uint8_t Bus::Read8(uint16_t  address, bool isDMAAccess) {
 		case 0x4b:
 			return ppu.ReadWX();
 		case 0x4d:
-			return key1;
+			return cpu.key1;
 		case 0x4f:
 			return mmc->ReadVBK();
 		case 0x51:
@@ -156,7 +152,7 @@ uint8_t Bus::Read8(uint16_t  address, bool isDMAAccess) {
 		case 0x77:
 			return spu.ReadPCM34();
 		case 0xff:
-			return IE;
+			return cpu.IE;
 		default:
 			return mmc->ReadHRAM(address);
 		}
@@ -208,7 +204,7 @@ void Bus::Write8(uint16_t address, uint8_t value, bool isDMAAccess) {
 			timer.WriteTAC(value);
 			return;
 		case 0x0f:
-			IF = value;
+			cpu.IF = value;
 			return;
 		case 0x10:
 			spu.WriteNR10(value);
@@ -314,7 +310,7 @@ void Bus::Write8(uint16_t address, uint8_t value, bool isDMAAccess) {
 			ppu.WriteWX(value);
 			return;
 		case 0x4d:
-			key1 = value;
+			cpu.key1 = value;
 			return;
 		case 0x4f:
 			mmc->WriteVBK(value);
@@ -356,7 +352,7 @@ void Bus::Write8(uint16_t address, uint8_t value, bool isDMAAccess) {
 			mmc->WriteSVBK(value);
 			return;
 		case 0xff:
-			IE = value;
+			cpu.IE = value;
 			return;
 		default:
 			if ((address & 0xff) >= 0x80) mmc->WriteHRAM(address, value);

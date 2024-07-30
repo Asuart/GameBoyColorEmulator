@@ -44,6 +44,31 @@ public:
 			uint8_t H;
 		};
 	};
+
+	union {
+		struct {
+			uint8_t ifVBlank : 1;
+			uint8_t ifLCD : 1;
+			uint8_t ifTimer : 1;
+			uint8_t ifSerial : 1;
+			uint8_t ifJoypad : 1;
+			uint8_t ifUnused : 3;
+		};
+		uint8_t IF; // Interruption Flag
+	};
+	union {
+		struct {
+			uint8_t ieVBlank : 1;
+			uint8_t ieLCD : 1;
+			uint8_t ieTimer : 1;
+			uint8_t ieSerial : 1;
+			uint8_t ieJoypad : 1;
+			uint8_t ieUnused : 3;
+		};
+		uint8_t IE; // Interrupt Enable
+	};
+	uint8_t IME;
+
 	uint16_t SP;
 	uint16_t PC;
 
@@ -58,7 +83,7 @@ public:
 		};
 	};
 
-	uint8_t IME;
+	uint8_t key1;
 	uint8_t dummyRead;
 	bool isHalting;
 	bool haltBug;

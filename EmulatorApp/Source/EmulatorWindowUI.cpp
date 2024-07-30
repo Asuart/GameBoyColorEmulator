@@ -162,8 +162,8 @@ void EmulatorWindowUI::PrintState() {
 	PixieUI::Renderer::DrawText("   E: " + std::format("{:#04x}", m_emulator.cpu.E), 398, 70, defaultUIStyle.fontColor);
 	PixieUI::Renderer::DrawText("   H: " + std::format("{:#04x}", m_emulator.cpu.H), 323, 80, defaultUIStyle.fontColor);
 	PixieUI::Renderer::DrawText("   L: " + std::format("{:#04x}", m_emulator.cpu.L), 398, 80, defaultUIStyle.fontColor);
-	PixieUI::Renderer::DrawText("  IF: " + std::format("{:#04x}", m_emulator.bus.IF), 323, 90, defaultUIStyle.fontColor);
-	PixieUI::Renderer::DrawText("  IE: " + std::format("{:#04x}", m_emulator.bus.IE), 398, 90, defaultUIStyle.fontColor);
+	PixieUI::Renderer::DrawText("  IF: " + std::format("{:#04x}", m_emulator.cpu.IF), 323, 90, defaultUIStyle.fontColor);
+	PixieUI::Renderer::DrawText("  IE: " + std::format("{:#04x}", m_emulator.cpu.IE), 398, 90, defaultUIStyle.fontColor);
 	PixieUI::Renderer::DrawText(" IME: " + (m_emulator.cpu.IME ? std::string("true") : std::string("false")), 323, 100, defaultUIStyle.fontColor);
 	PixieUI::Renderer::DrawText("HALT: " + (m_emulator.cpu.isHalting ? std::string("true") : std::string("false")), 398, 100, defaultUIStyle.fontColor);
 

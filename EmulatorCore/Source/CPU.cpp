@@ -9,7 +9,10 @@ void CPU::Reset() {
 	HL = 0x014d;
 	PC = 0x100;
 	SP = 0xfffe;
+	IF = 0xe1;
+	IE = 0x00;
 	IME = 0;
+	key1 = 0x0;
 	isHalting = false;
 	haltBug = false;
 }
@@ -44,29 +47,29 @@ uint32_t CPU::Step() {
 }
 
 bool CPU::HandleInterruptions() {
-	uint8_t interruptions = bus.IF & bus.IE & 0x1f;
+	uint8_t interruptions = IF & IE & 0x1f;
 	if (!interruptions) return false;
 	isHalting = false;
 	if (!IME) return false;
 
 	if (interruptions & (uint8_t)Interruption::VBlank) {
-		bus.IF &= ~(uint8_t)Interruption::VBlank;
+		IF &= ~(uint8_t)Interruption::VBlank;
 		HandleInterruption(0x40);
 	}
 	else if (interruptions & (uint8_t)Interruption::LCD) {
-		bus.IF &= ~(uint8_t)Interruption::LCD;
+		IF &= ~(uint8_t)Interruption::LCD;
 		HandleInterruption(0x48);
 	}
 	else if (interruptions & (uint8_t)Interruption::Timer) {
-		bus.IF &= ~(uint8_t)Interruption::Timer;
+		IF &= ~(uint8_t)Interruption::Timer;
 		HandleInterruption(0x50);
 	}
 	else if (interruptions & (uint8_t)Interruption::Serial) {
-		bus.IF &= ~(uint8_t)Interruption::Serial;
+		IF &= ~(uint8_t)Interruption::Serial;
 		HandleInterruption(0x58);
 	}
 	else if (interruptions & (uint8_t)Interruption::Joypad) {
-		bus.IF &= ~(uint8_t)Interruption::Joypad;
+		IF &= ~(uint8_t)Interruption::Joypad;
 		HandleInterruption(0x60);
 	}
 
@@ -686,7 +689,7 @@ void CPU::ExecuteInline() {
 		Write8(HL, L);
 		break;
 	case 0x76:
-		if (IME || (bus.IE & bus.IF & 0x1f) == 0) {
+		if (IME || (IE & IF & 0x1f) == 0) {
 			isHalting = true;
 		}
 		else {
@@ -3555,7 +3558,7 @@ void CPU::HALT() {
 		isHalting = true;
 	}
 	else {
-		if (bus.IE & bus.IF & 0x1f) {
+		if (IE & IF & 0x1f) {
 			std::cout << "HALT can bug out\n";
 			haltBug = true;
 		}
