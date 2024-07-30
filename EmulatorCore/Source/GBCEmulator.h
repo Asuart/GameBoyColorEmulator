@@ -7,6 +7,7 @@
 #include "PPU.h"
 #include "DMA.h"
 #include "CPU.h"
+#include "SaveState.h"
 
 class Bus;
 class MMC;
@@ -18,6 +19,8 @@ class PPU;
 class DMA;
 class CPU;
 enum class MMCType;
+
+const uint32_t saveStateSize = 0x4000;
 
 class GBCEmulator {
 public:
@@ -44,6 +47,8 @@ public:
 	void Run(uint32_t cpuCycles);
 	bool IsFrameReady();
 	void ResetFrameReadyFlag();
+	SaveState GetSaveState();
+	bool LoadSaveState(const SaveState& saveState);
 
 private:
 	MMC* CreateMMC(MMCType type);

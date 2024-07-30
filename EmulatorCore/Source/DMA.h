@@ -26,7 +26,7 @@ public:
 	void WriteHDMA4(uint8_t value);
 	void WriteHDMA5(uint8_t value);
 
-private:
+protected:
 	Bus& bus;
 
 	uint8_t OAM;
@@ -37,5 +37,7 @@ private:
 	uint8_t HDMA5;
 
 	uint32_t writes = 0;
+
+	friend class GBCEmulator;
 };
 
