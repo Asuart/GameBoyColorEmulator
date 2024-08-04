@@ -142,3 +142,75 @@ uint8_t MBC1::GetRAMBank() {
 	}
 	return 0;
 }
+
+void MBC1::WriteState(SaveState& state) {
+	state.Write8(ROMBanksCount);
+	state.Write8(RAMBanksCount);
+	state.Write8(multicart);
+	state.Write8(RAMEnable);
+	state.Write8(ROMBank);
+	state.Write8(RAMBank);
+	state.Write8(mode);
+
+	for (size_t i = 0; i < vram.size(); i++) {
+		state.Write8(vram[i]);
+	}
+
+	for (size_t i = 0; i < ramBanks.size(); i++) {
+		for (size_t j = 0; j < ramBanks[i].size(); j++) {
+			state.Write8(ramBanks[i][j]);
+		}
+	}
+
+	for (size_t i = 0; i < wram0.size(); i++) {
+		state.Write8(wram0[i]);
+	}
+
+	for (size_t i = 0; i < wram1.size(); i++) {
+		state.Write8(wram1[i]);
+	}
+
+	for (size_t i = 0; i < oam.size(); i++) {
+		state.Write8(oam[i]);
+	}
+
+	for (size_t i = 0; i < hram.size(); i++) {
+		state.Write8(hram[i]);
+	}
+}
+
+void MBC1::LoadState(SaveState& state) {
+	ROMBanksCount = state.Read8();
+	RAMBanksCount = state.Read8();
+	multicart = state.Read8();
+	RAMEnable = state.Read8();
+	ROMBank = state.Read8();
+	RAMBank = state.Read8();
+	mode = state.Read8();
+
+	for (size_t i = 0; i < vram.size(); i++) {
+		vram[i] = state.Read8();
+	}
+
+	for (size_t i = 0; i < ramBanks.size(); i++) {
+		for (size_t j = 0; j < ramBanks[i].size(); j++) {
+			ramBanks[i][j] = state.Read8();
+		}
+	}
+
+	for (size_t i = 0; i < wram0.size(); i++) {
+		wram0[i] = state.Read8();
+	}
+
+	for (size_t i = 0; i < wram1.size(); i++) {
+		wram1[i] = state.Read8();
+	}
+
+	for (size_t i = 0; i < oam.size(); i++) {
+		oam[i] = state.Read8();
+	}
+
+	for (size_t i = 0; i < hram.size(); i++) {
+		hram[i] = state.Read8();
+	}
+}

@@ -23,6 +23,9 @@ public:
 	void TickFrequencySweep();
 	void TickEnvelopeSweep();
 
+	void WriteState(SaveState& state);
+	void LoadState(uint8_t* state);
+
 	Bus& bus;
 
 	double clockAccumulator;

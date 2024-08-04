@@ -20,6 +20,9 @@ public:
 	void WriteTMA(uint8_t value);
 	void WriteTAC(uint8_t value);
 
+	void WriteState(SaveState& state);
+	void LoadState(SaveState& state);
+
 private:
 	Bus& bus;
 	uint8_t DIV;

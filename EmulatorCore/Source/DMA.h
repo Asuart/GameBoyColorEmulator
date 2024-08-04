@@ -26,6 +26,9 @@ public:
 	void WriteHDMA4(uint8_t value);
 	void WriteHDMA5(uint8_t value);
 
+	void WriteState(SaveState& state);
+	void LoadState(SaveState& state);
+
 protected:
 	Bus& bus;
 

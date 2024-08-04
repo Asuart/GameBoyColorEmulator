@@ -39,5 +39,8 @@ public:
 	uint8_t Read();
 	void Write(uint8_t value);
 	bool ButtonPressed(Button button);
+
+	void WriteState(SaveState& state);
+	void LoadState(SaveState& state);
 };
 

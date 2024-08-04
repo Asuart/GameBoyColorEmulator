@@ -66,9 +66,12 @@ public:
 	void WriteOBPD(uint8_t value);
 	void WriteOPRI(uint8_t value);
 
+	void WriteState(SaveState& state);
+	void LoadState(SaveState& state);
+
 	Bus& bus;
 
-	uint32_t dot = 0;
+	uint16_t dot = 0;
 	uint8_t mode3Penalty = 12;
 	uint8_t windowScanline = 0;
 	bool frameReady = false;

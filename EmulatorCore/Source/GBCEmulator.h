@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include "Bus.h"
 #include "Mappers.h"
 #include "Joypad.h"
@@ -47,10 +48,16 @@ public:
 	void Run(uint32_t cpuCycles);
 	bool IsFrameReady();
 	void ResetFrameReadyFlag();
-	SaveState GetSaveState();
-	bool LoadSaveState(const SaveState& saveState);
+	SaveState* GetSaveState();
+	SaveState* CreateSaveState();
+	void SetSaveState(SaveState* state);
+	bool LoadSaveState();
+	std::string GetROMName();
+	void SetName(const std::string& name);
 
 private:
+	std::string romName = "norom";
+	SaveState* saveState = nullptr;
 	MMC* CreateMMC(MMCType type);
 };
 

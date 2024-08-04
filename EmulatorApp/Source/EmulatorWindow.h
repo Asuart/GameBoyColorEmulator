@@ -29,6 +29,9 @@ public:
 	void HandleMouseMove(double x, double y);
 	void HandleKeyEvent(int32_t key, int32_t scancode, int32_t action);
 	bool IsPaused();
+	uint32_t GetWidth();
+	uint32_t GetHeight();
+	FileAccessState SaveSettings();
 
 protected:
 	uint32_t m_width;
@@ -48,9 +51,11 @@ protected:
 	bool ButtonIsPressed(EmulatorButton button);
 
 	FileAccessState LoadSettings();
-	FileAccessState SaveSettings();
-	FileAccessState LoadState();
-	FileAccessState SaveState();
+	FileAccessState LoadStateFromFile();
+	FileAccessState SaveStateToFile();
+
+	bool WriteSaveStateFile(SaveState*);
+	SaveState* ReadSaveStateFile();
 
 	friend class EmulatorWindowUI;
 };

@@ -96,7 +96,6 @@ void EmulatorWindow::HandleKeyEvent(int32_t key, int32_t scancode, int32_t actio
 			m_isRebindingKey = false;
 			if (key == GLFW_KEY_ESCAPE) return;
 			m_buttonMap.mappings[(uint32_t)m_keyToRebind] = key;
-			SaveSettings();
 			return;
 		}
 
@@ -109,6 +108,13 @@ void EmulatorWindow::HandleKeyEvent(int32_t key, int32_t scancode, int32_t actio
 		}
 		else if (m_paused && key == m_buttonMap.mappings[(uint32_t)EmulatorButton::Resume]) {
 			m_paused = false;
+		}
+
+		if (key == m_buttonMap.mappings[(uint32_t)EmulatorButton::SaveState]) {
+			SaveStateToFile();
+		}
+		else if (key == m_buttonMap.mappings[(uint32_t)EmulatorButton::LoadState]) {
+			LoadStateFromFile();
 		}
 	}
 }
@@ -128,6 +134,7 @@ bool EmulatorWindow::LoadROM(const std::string& romPath) {
 	reader.close();
 
 	bool loaded = m_emulator.LoadROM(ROMdata, romSize);
+	m_emulator.SetName(std::filesystem::path(romPath).filename().string());
 
 	delete[] ROMdata;
 
@@ -179,6 +186,7 @@ FileAccessState EmulatorWindow::LoadSettings() {
 			if (windowHeight > monitorHeight) windowHeight = monitorHeight;
 
 			glfwSetWindowSize(m_mainWindow, windowWidth, windowHeight);
+			HandleResolutionChange(windowWidth, windowHeight);
 		}
 		catch (std::exception e) {
 			std::cout << "Failed to load window size from settings file.\n";
@@ -270,11 +278,20 @@ FileAccessState EmulatorWindow::SaveSettings() {
 	return FileAccessState::Ok;
 }
 
-FileAccessState EmulatorWindow::LoadState() {
+FileAccessState EmulatorWindow::LoadStateFromFile() {
+	if (!std::filesystem::exists("saves")) return FileAccessState::FileDoesntExist;
+	SaveState* state = ReadSaveStateFile();
+	m_emulator.SetSaveState(state);
+	m_emulator.LoadSaveState();
 	return FileAccessState::Ok;
 }
 
-FileAccessState EmulatorWindow::SaveState() {
+FileAccessState EmulatorWindow::SaveStateToFile() {
+	if (!std::filesystem::exists("saves")) {
+		std::filesystem::create_directories("saves");
+	}
+	SaveState* saveState = m_emulator.CreateSaveState();
+	WriteSaveStateFile(saveState);
 	return FileAccessState::Ok;
 }
 
@@ -291,7 +308,7 @@ void EmulatorWindow::Start() {
 		double newTime = glfwGetTime();
 		double deltaTime = newTime - lastTime;
 		lastTime = newTime;
-		std::string windowTitle = "GBC Emulator " + std::to_string(deltaTime * 1000) + "ms";
+		std::string windowTitle = "GBC Emulator: " + m_emulator.GetROMName() + " (" + std::to_string(deltaTime * 1000) + "ms)";
 		glfwSetWindowTitle(m_mainWindow, windowTitle.c_str());
 
 		if (deltaTime < m_targetFrameTime) {
@@ -347,4 +364,33 @@ bool EmulatorWindow::ButtonIsPressed(EmulatorButton button) {
 
 bool EmulatorWindow::IsPaused() {
 	return m_paused || m_ui->m_windowOpened;
+}
+
+bool EmulatorWindow::WriteSaveStateFile(SaveState* state) {
+	if (!state) return false;
+	std::ofstream writer("saves/" + m_emulator.GetROMName() + ".sav", std::ios::out | std::ios::binary);
+	if (!writer.is_open()) return false;
+	writer.write((char*)state->data.data(), state->data.size());
+	writer.close();
+	return true;
+}
+
+SaveState* EmulatorWindow::ReadSaveStateFile() {
+	std::ifstream reader("saves/" + m_emulator.GetROMName() + ".sav", std::ios::in | std::ios::binary | std::ios::ate);
+	if (!reader.is_open()) return nullptr;
+	uint32_t size = reader.tellg();
+	reader.seekg(std::ios::beg);
+	SaveState* state = new SaveState(m_emulator.GetROMName());
+	state->data.resize(size);
+	reader.read((char*)state->data.data(), size);
+	reader.close();
+	return state;
+}
+
+uint32_t EmulatorWindow::GetWidth() {
+	return m_width;
+}
+
+uint32_t EmulatorWindow::GetHeight() {
+	return m_height;
 }

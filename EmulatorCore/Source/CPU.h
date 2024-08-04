@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <string>
 #include "Bus.h"
+#include "SaveState.h"
 
 class Bus;
 
@@ -99,6 +100,9 @@ public:
 	uint32_t Step();
 	void HandleInterruption(uint16_t handlerAddress);
 	bool HandleInterruptions();
+
+	void WriteState(SaveState& state);
+	void LoadState(SaveState& state);
 
 private:
 	// Help Functions

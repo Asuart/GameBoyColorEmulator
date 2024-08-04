@@ -442,6 +442,54 @@ void PPU::WriteOPRI(uint8_t value) {
 	OPRI = value;
 }
 
+void PPU::WriteState(SaveState& state) {
+	state.Write16(dot);
+	state.Write8(mode3Penalty);
+	state.Write8(windowScanline);
+	state.Write8(statInterruptionFlag);
+	state.Write8(LCDC);
+	state.Write8(STAT);
+	state.Write8(SCY);
+	state.Write8(SCX);
+	state.Write8(SCXBuffer);
+	state.Write8(LY);
+	state.Write8(LYC);
+	state.Write8(BGP);
+	state.Write8(OBP0);
+	state.Write8(OBP1);
+	state.Write8(WY);
+	state.Write8(WX);
+	state.Write8(BGPI);
+	state.Write8(BGPD);
+	state.Write8(OBPI);
+	state.Write8(OBPD);
+	state.Write8(OPRI);
+}
+
+void PPU::LoadState(SaveState& state) {
+	dot = state.Read16();
+	mode3Penalty = state.Read8();
+	windowScanline = state.Read8();
+	statInterruptionFlag = state.Read8();
+	LCDC = state.Read8();
+	STAT = state.Read8();
+	SCY = state.Read8();
+	SCX = state.Read8();
+	SCXBuffer = state.Read8();
+	LY = state.Read8();
+	LYC = state.Read8();
+	BGP = state.Read8();
+	OBP0 = state.Read8();
+	OBP1 = state.Read8();
+	WY = state.Read8();
+	WX = state.Read8();
+	BGPI = state.Read8();
+	BGPD = state.Read8();
+	OBPI = state.Read8();
+	OBPD = state.Read8();
+	OPRI = state.Read8();
+}
+
 void PPU::UpdateStatInterruptionFlag() {
 	statInterruptionFlag = LYCLY;
 	if (statInterruptionFlag) return;

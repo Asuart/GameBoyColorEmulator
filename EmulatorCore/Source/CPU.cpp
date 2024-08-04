@@ -202,6 +202,34 @@ void CPU::Push16(uint16_t value) {
 	bus.Write16(SP, value);
 }
 
+void CPU::WriteState(SaveState& state) {
+	state.Write16(AF);
+	state.Write16(BC);
+	state.Write16(DE);
+	state.Write16(HL);
+	state.Write16(SP);
+	state.Write8(IF);
+	state.Write8(IE);
+	state.Write8(IME);
+	state.Write8(isHalting);
+	state.Write8(haltBug);
+	state.Write8(key1);
+}
+
+void CPU::LoadState(SaveState& state) {
+	AF = state.Read16();
+	BC = state.Read16();
+	DE = state.Read16();
+	HL = state.Read16();
+	SP = state.Read16();
+	IF = state.Read8();
+	IE = state.Read8();
+	IME = state.Read8();
+	isHalting = state.Read8();
+	haltBug = state.Read8();
+	key1 = state.Read8();
+}
+
 bool CPU::CheckCondition(uint8_t condition) {
 	switch (condition & 0b11) {
 	case 0:

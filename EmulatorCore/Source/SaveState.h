@@ -11,9 +11,6 @@ struct SaveState {
 
 	SaveState(const std::string& name);
 
-	bool WriteFile();
-	bool ReadFile();
-
 	void Write8(uint8_t value);
 	void Write16(uint16_t value);
 	void Write32(uint32_t value);

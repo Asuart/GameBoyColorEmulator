@@ -17,6 +17,8 @@ enum class EmulatorButton {
 	Pause,
 	Resume,
 	Step,
+	SaveState,
+	LoadState,
 	COUNT
 };
 
@@ -33,7 +35,9 @@ struct ButtonMap {
 		GLFW_KEY_R,
 		GLFW_KEY_ENTER,
 		GLFW_KEY_ENTER,
-		GLFW_KEY_SPACE
+		GLFW_KEY_SPACE,
+		GLFW_KEY_F1,
+		GLFW_KEY_F2,
 	};
 };
 

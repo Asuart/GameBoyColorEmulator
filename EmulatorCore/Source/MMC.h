@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include "OAMEntry.h"
+#include "SaveState.h"
 
 class Bus;
 
@@ -63,6 +64,9 @@ public:
 	uint8_t ReadSVBK();
 	void WriteVBK(uint8_t value);
 	void WriteSVBK(uint8_t value);
+
+	virtual void WriteState(SaveState& state);
+	virtual void LoadState(SaveState& state);
 
 private:
 	Bus& bus;

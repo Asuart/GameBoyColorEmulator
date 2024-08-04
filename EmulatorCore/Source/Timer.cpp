@@ -67,3 +67,21 @@ void Timer::WriteTMA(uint8_t value) {
 void Timer::WriteTAC(uint8_t value) {
 	TAC = value;
 }
+
+void Timer::WriteState(SaveState& state) {
+	state.Write8(DIV);
+	state.Write8(TIMA);
+	state.Write8(TMA);
+	state.Write8(TAC);
+	state.Write32(DIVClockAccumulator);
+	state.Write32(TIMAClockAccumulator);
+}
+
+void Timer::LoadState(SaveState& state) {
+	DIV = state.Read8();
+	TIMA = state.Read8();
+	TMA = state.Read8();
+	TAC = state.Read8();
+	DIVClockAccumulator = state.Read32();
+	TIMAClockAccumulator = state.Read32();
+}

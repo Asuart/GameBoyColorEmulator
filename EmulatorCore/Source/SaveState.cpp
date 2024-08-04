@@ -3,25 +3,6 @@
 SaveState::SaveState(const std::string& name)
 	: name(name) {}
 
-bool SaveState::WriteFile() {
-	std::ofstream writer("saves/" + name, std::ios::out | std::ios::binary);
-	if (!writer.is_open()) return false;
-	writer.write((char*)data.data(), data.size());
-	writer.close();
-	return true;
-}
-
-bool SaveState::ReadFile() {
-	std::ifstream reader("saves/" + name, std::ios::in | std::ios::binary | std::ios::ate);
-	if (!reader.is_open()) return false;
-	uint32_t size = reader.tellg();
-	reader.seekg(std::ios::beg);
-	data.resize(size);
-	reader.read((char*)data.data(), size);
-	reader.close();
-	return true;
-}
-
 void SaveState::Write8(uint8_t value) {
 	data.push_back(value);
 }

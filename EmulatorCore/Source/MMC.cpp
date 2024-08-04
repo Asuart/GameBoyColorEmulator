@@ -235,3 +235,61 @@ void MMC::WriteSVBK(uint8_t value) {
 	SVBK = value;
 	if ((SVBK & 0b111) == 0) SVBK |= 1;
 }
+
+void MMC::WriteState(SaveState& state) {
+	state.Write8(VBK);
+	state.Write8(SVBK);
+
+	for (size_t i = 0; i < vram.size(); i++) {
+		for (size_t j = 0; j < vram[i].size(); j++) {
+			state.Write8(vram[i][j]);
+		}
+	}
+
+	for (size_t i = 0; i < eram.size(); i++) {
+		state.Write8(eram[i]);
+	}
+
+	for (size_t i = 0; i < wram.size(); i++) {
+		for (size_t j = 0; j < wram[i].size(); j++) {
+			state.Write8(wram[i][j]);
+		}
+	}
+
+	for (size_t i = 0; i < oam.size(); i++) {
+		state.Write8(oam[i]);
+	}
+
+	for (size_t i = 0; i < hram.size(); i++) {
+		state.Write8(hram[i]);
+	}
+}
+
+void MMC::LoadState(SaveState& state) {
+	VBK = state.Read8();
+	SVBK = state.Read8();
+
+	for (size_t i = 0; i < vram.size(); i++) {
+		for (size_t j = 0; j < vram[i].size(); j++) {
+			vram[i][j] = state.Read8();
+		}
+	}
+
+	for (size_t i = 0; i < eram.size(); i++) {
+		eram[i] = state.Read8();
+	}
+
+	for (size_t i = 0; i < wram.size(); i++) {
+		for (size_t j = 0; j < wram[i].size(); j++) {
+			wram[i][j] = state.Read8();
+		}
+	}
+
+	for (size_t i = 0; i < oam.size(); i++) {
+		oam[i] = state.Read8();
+	}
+
+	for (size_t i = 0; i < hram.size(); i++) {
+		hram[i] = state.Read8();
+	}
+}

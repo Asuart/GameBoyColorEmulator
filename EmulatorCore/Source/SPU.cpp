@@ -70,6 +70,14 @@ void SPU::TickEnvelopeSweep() {
 
 }
 
+void SPU::WriteState(SaveState& state) {
+
+}
+
+void SPU::LoadState(uint8_t* state) {
+
+}
+
 uint8_t SPU::ReadNR10() {
 	return 0x00;
 }

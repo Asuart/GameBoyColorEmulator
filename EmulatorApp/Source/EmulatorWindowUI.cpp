@@ -85,35 +85,48 @@ EmulatorWindowUI::EmulatorWindowUI(EmulatorWindow& parent, GBCEmulator& emulator
 
 	PixieUI::Element* controlsWindowContent = new PixieUI::Element(30, 40, m_width - 40, m_height - 50, 110, emptyStyle);
 	controlsWindowContent->AddChild(new PixieUI::Text("Keyboard", 90, 30, 0, 0, 111, defaultUIStyle));
+	controlsWindowContent->AddChild(new PixieUI::Text("Keyboard", 242, 30, 0, 0, 111, defaultUIStyle));
 
-	auto createRebindButton = [&](const std::string& text, EmulatorButton button, int32_t y) {
-		controlsWindowContent->AddChild(new PixieUI::Text(text, 20, y, 0, 0, 111, defaultUIStyle));
+	auto createRebindButton = [&](const std::string& text, EmulatorButton button, int32_t x, int32_t y) {
+		controlsWindowContent->AddChild(new PixieUI::Text(text, x, y, 0, 0, 111, defaultUIStyle));
 		PixieUI::Element* btn = new PixieUI::Button(PixieUI::ButtonConfig("", [&, button](int32_t, int32_t) {
 			m_parent.m_isRebindingKey = true;
 			m_parent.m_keyToRebind = button;
 			return true;
-			}), 92, y, 115, buttonStyle);
+			}), 72 + x, y, 115, buttonStyle);
 		btn->ForceWidth(50);
 		std::string btnText = GLFWKeyToString(m_parent.m_buttonMap.mappings[(uint32_t)button]);
 		btn->AddChild(new PixieUI::DynamicText([&, button]() {
 			return GLFWKeyToString(m_parent.m_buttonMap.mappings[(uint32_t)button]);
-			}, 115 - (uint32_t)btnText.size() * 3, y, 0, 0, 120, defaultUIStyle));
+			}, 95 + x - (uint32_t)btnText.size() * 3, y, 0, 0, 120, defaultUIStyle));
 		controlsWindowContent->AddChild(btn);
 		};
 
-	createRebindButton(" Start:", EmulatorButton::Start, 50);
-	createRebindButton("Select:", EmulatorButton::Select, 70);
-	createRebindButton("     A:", EmulatorButton::A, 90);
-	createRebindButton("     B:", EmulatorButton::B, 110);
-	createRebindButton("  Left:", EmulatorButton::Left, 130);
-	createRebindButton(" Right:", EmulatorButton::Right, 150);
-	createRebindButton("    Up:", EmulatorButton::Up, 170);
-	createRebindButton("  Down:", EmulatorButton::Down, 190);
+	createRebindButton(" Start:", EmulatorButton::Start, 20, 50);
+	createRebindButton("Select:", EmulatorButton::Select, 20, 70);
+	createRebindButton("     A:", EmulatorButton::A, 20, 90);
+	createRebindButton("     B:", EmulatorButton::B, 20, 110);
+	createRebindButton("  Left:", EmulatorButton::Left, 20, 130);
+	createRebindButton(" Right:", EmulatorButton::Right, 20, 150);
+	createRebindButton("    Up:", EmulatorButton::Up, 20, 170);
+	createRebindButton("  Down:", EmulatorButton::Down, 20, 190);
 
-	createRebindButton(" Reset:", EmulatorButton::Reset, 210);
-	createRebindButton(" Pause:", EmulatorButton::Pause, 230);
-	createRebindButton("Resume:", EmulatorButton::Resume, 250);
-	createRebindButton("  Step:", EmulatorButton::Step, 270);
+	createRebindButton(" Reset:", EmulatorButton::Reset, 20, 210);
+	createRebindButton(" Pause:", EmulatorButton::Pause, 20, 230);
+	createRebindButton("Resume:", EmulatorButton::Resume, 20, 250);
+	createRebindButton("  Step:", EmulatorButton::Step, 20, 270);
+
+	createRebindButton("  Save:", EmulatorButton::SaveState, 172, 50);
+	createRebindButton("  Load:", EmulatorButton::LoadState, 172, 70);
+
+	controlsWindowContent->AddChild(new PixieUI::DynamicText([&]() {
+		return "Resolution: " + std::to_string(m_parent.GetWidth()) + "x" + std::to_string(m_parent.GetHeight());
+		}, 182, 90, 0, 0, 111, defaultUIStyle));
+
+	controlsWindowContent->AddChild(new PixieUI::Button(PixieUI::ButtonConfig("Save Settings", [&](int32_t, int32_t) {
+		m_parent.SaveSettings();
+		return true;
+		}), 380, 270, 111, buttonStyle));
 
 	m_settingsWindow = new PixieUI::Window("Settings", m_width, m_height, controlsWindowContent, 100, windowOverlayStyle, containerStyle, buttonStyle);
 	m_settingsWindow->SetShowCallback([&]() {

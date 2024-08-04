@@ -69,3 +69,21 @@ void DMA::WriteHDMA4(uint8_t value) {
 void DMA::WriteHDMA5(uint8_t value) {
 	HDMA5 = value;
 }
+
+void DMA::WriteState(SaveState& state) {
+	state.Write8(OAM);
+	state.Write8(HDMA1);
+	state.Write8(HDMA2);
+	state.Write8(HDMA3);
+	state.Write8(HDMA4);
+	state.Write8(HDMA5);
+}
+
+void DMA::LoadState(SaveState& state) {
+	OAM = state.Read8();
+	HDMA1 = state.Read8();
+	HDMA2 = state.Read8();
+	HDMA3 = state.Read8();
+	HDMA4 = state.Read8();
+	HDMA5 = state.Read8();
+}

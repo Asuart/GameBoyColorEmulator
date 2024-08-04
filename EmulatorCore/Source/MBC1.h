@@ -19,6 +19,9 @@ public:
 	void WriteOAM(uint16_t address, uint8_t value);
 	OAMEntry* GetOAMEntry(uint8_t index);
 
+	virtual void WriteState(SaveState& state) override;
+	virtual void LoadState(SaveState& state) override;
+
 private:
 	uint8_t ROMBanksCount;
 	uint8_t RAMBanksCount;

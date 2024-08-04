@@ -25,3 +25,27 @@ bool Joypad::ButtonPressed(Button button) {
 	}
 	return false;
 }
+
+void Joypad::WriteState(SaveState& state) {
+	state.Write8(buttons[0]);
+	state.Write8(buttons[1]);
+	state.Write8(buttons[2]);
+	state.Write8(buttons[3]);
+	state.Write8(buttons[4]);
+	state.Write8(buttons[5]);
+	state.Write8(buttons[6]);
+	state.Write8(buttons[7]);
+	state.Write8(data);
+}
+
+void Joypad::LoadState(SaveState& state) {
+	buttons[0] = state.Read8();
+	buttons[1] = state.Read8();
+	buttons[2] = state.Read8();
+	buttons[3] = state.Read8();
+	buttons[4] = state.Read8();
+	buttons[5] = state.Read8();
+	buttons[6] = state.Read8();
+	buttons[7] = state.Read8();
+	data = state.Read8();
+}
