@@ -2,6 +2,8 @@
 .vs/
 Binaries/
 build/
+saves/
+saves/*
 
 # Files
 *.vcxproj

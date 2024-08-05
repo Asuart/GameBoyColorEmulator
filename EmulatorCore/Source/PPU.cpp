@@ -552,8 +552,8 @@ void PPU::PrerenderSPRLine() {
 
 	for (uint8_t spriteIndex = 0, objCount = 0; spriteIndex < 40 && objCount < 10; spriteIndex++) {
 		OAMEntry* sprite = bus.GetOAMEntry(spriteIndex);
-		uint16_t spriteX = sprite->x - 8;
-		uint16_t spriteY = sprite->y - 16;
+		int16_t spriteX = sprite->x - 8;
+		int16_t spriteY = sprite->y - 16;
 		if (LY < spriteY) continue;
 		uint16_t row = LY - spriteY;
 		uint16_t tileIndex = sprite->tile;

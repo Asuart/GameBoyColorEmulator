@@ -70,6 +70,7 @@ bool GBCEmulator::LoadSaveState() {
 		mmc->LoadState(*saveState);
 		ppu.LoadState(*saveState);
 		timer.LoadState(*saveState);
+		//spu.LoadState(*saveState);
 	}
 	catch (std::exception e) {
 		std::cout << "Failed to load save state: " << e.what() << "\n";
