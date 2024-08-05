@@ -30,6 +30,12 @@ Blargg's cpu instructions: passed.
 
 ![blargg_cpu_instr_result](/assets/blargg_cpu_instr.png)
 
+Blargg's instruction timing: passed (somehow).
+
+![blargg_cpu_instr_result](/assets/blargg_instr_timing.png)
+
+Undefined CPU or MMC error causes bug in Dr. Mario - pill get overlapped. 
+
 ## License
 - UNLICENSE for this repository (see `UNLICENSE.txt` for more details)
 - Premake is licensed under BSD 3-Clause (see included LICENSE.txt file for more details)
