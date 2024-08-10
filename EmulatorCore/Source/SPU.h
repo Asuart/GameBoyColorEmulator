@@ -32,7 +32,7 @@ public:
 	uint32_t tickCounter;
 	uint32_t sampleCounter;
 
-	std::array<int16_t, spuSampleClock * 4> samples;
+	std::array<int16_t, spuSampleClock * 8> samples;
 
 	union {
 		struct {
@@ -70,194 +70,121 @@ public:
 		uint8_t masterVolumeAndVIN;
 	};
 
-	struct PulseChannel {
-		union {
-			uint8_t sweep;
-			struct {
-				uint8_t individualStep : 3;
-				uint8_t direction : 1;
-				uint8_t pace : 3;
-				uint8_t sweepUnused : 1;
-			};
-		};
-		uint8_t activePace;
+	struct ToneChannel {
+		uint8_t wavsel = 0;
+		uint8_t sndlen = 0;
+		uint8_t envini = 0;
+		uint8_t envdir = 0;
+		uint8_t envper = 0;
+		int16_t sndper = 0;
+		uint8_t uselen = 0;
 
-		union {
-			uint8_t lengthAndDuty;
-			struct {
-				uint8_t initialLengthTimer : 6;
-				uint8_t waveDuty : 2;
-			};
-		};
+		bool enable = false;
+		int16_t lengthtimer = 64;
+		int16_t periodtimer = 0;
+		int16_t envelopetimer = 0;
+		int16_t period = 4;
+		uint8_t waveframe = 0;
+		int16_t frametimer = 0x2000;
+		uint8_t frame = 0;
+		uint8_t volume = 0;
 
-		union {
-			uint8_t volumeAndEnvelope;
-			struct {
-				uint8_t sweepPace : 3;
-				uint8_t envelopeDirection : 1;
-				uint8_t initialVolume : 4;
-			};
-		};
+		virtual uint8_t ReadRegister(uint8_t reg);
+		virtual void WriteRegister(uint8_t reg, uint8_t value);
+		virtual void Step();
+		virtual void TickFrame();
+		virtual int16_t Sample();
+		virtual void Trigger();
 
-		uint8_t periodLow;
+	} toneChannel;
 
-		union {
-			uint8_t periodHighAndControl;
-			struct {
-				uint8_t period : 3;
-				uint8_t controlUnused : 3;
-				uint8_t lengthEnabled : 1;
-				uint8_t trigger : 1;
-			};
-		};
+	struct SweepChannel : public ToneChannel {
+		int16_t swpper = 0;
+		uint8_t swpdir = 0;
+		uint8_t swpmag = 0;
 
-		bool active;
-		uint8_t periodLowBuffer, periodHighBuffer;
-		int8_t lengthTimer;
-		uint8_t waveCycle;
-		int32_t periodTimer;
-		int32_t frameTimer;
-		int32_t envelopeTimer;
-		int32_t frame;
-		int32_t volume;
-		int32_t soundPeriod;
-		int32_t framePeriod;
+		int16_t sweeptimer = 0;
+		bool sweepenable = false;
+		int16_t shadow = 0;
 
+		uint8_t ReadRegister(uint8_t reg) override;
+		void WriteRegister(uint8_t reg, uint8_t value) override;
+		void TickFrame() override;
+		void Trigger() override;
+		bool Sweep(bool save);
 
-		PulseChannel();
+	} sweepChannel;
+
+	struct WaveChannel {
+		std::array<uint8_t, 0x10> wavetable = {0xff};
+		
+		uint8_t dacpow = 0;
+		uint8_t sndlen = 0;
+		int16_t volreg = 0;
+		int16_t sndper = 0;
+		uint8_t uselen = 0;
+
+		bool enable = false;
+		int16_t lengthtimer = 256;
+		int16_t periodtimer = 0;
+		int16_t period = 4;
+		uint8_t waveframe = 0;
+		int16_t frametimer = 0x2000;
+		uint8_t frame = 0;
+		uint8_t volumeshift = 0;
+
+		uint8_t ReadRegister(uint8_t reg);
+		void WriteRegister(uint8_t reg, uint8_t value);
+		uint8_t ReadWaveByte(uint8_t offset);
+		void WriteWaveByte(uint8_t offset, uint8_t value);
 		void Step();
 		void TickFrame();
 		int16_t Sample();
 		void Trigger();
 
-	} pulse1, pulse2;
-
-	struct WaveChannel {
-		union {
-			uint8_t dacEnable;
-			struct {
-				uint8_t dacEnableUnused : 7;
-				uint8_t dacOn : 1;
-			};
-		};
-
-		uint8_t lengthTimer;
-
-		union {
-			uint8_t outputLevel;
-			struct {
-				uint8_t outputLevelUnused0 : 5;
-				uint8_t outputLevelBits : 2;
-				uint8_t outputLevelUnused1 : 1;
-			};
-		};
-
-		uint8_t periodLow;
-		uint8_t periodLowBuffer, periodHighBuffer;
-
-		union {
-			uint8_t periodHighAndControl;
-			struct {
-				uint8_t period : 3;
-				uint8_t periodHighAndControlUnused : 3;
-				uint8_t lengthEnable : 1;
-				uint8_t trigger : 1;
-			};
-		};
-
-		std::array<uint8_t, 0x10> pattern;
-
-		void Trigger();
-
-	} wave;
+	} waveChannel;
 
 	struct NoiseChannel {
-		union {
-			uint8_t lengthTimer;
-			struct {
-				uint8_t initialLengthTimer : 6;
-				uint8_t lengthTimerUnused : 2;
-			};
-		};
+		const std::array<uint8_t, 8> divtable = { 8, 16, 32, 48, 64, 80, 96, 112 };
 
-		union {
-			uint8_t volumeAndEnvelope;
-			struct {
-				uint8_t sweepPace : 3;
-				uint8_t envelopeDirection : 1;
-				uint8_t initialVolume : 4;
-			};
-		};
+		uint8_t sndlen = 0;
+		uint8_t envini = 0;
+		uint8_t envdir = 0;
+		uint8_t envper = 0;
+		uint8_t clkpow = 0;
+		uint8_t regwid = 0;
+		uint8_t clkdiv = 0;
+		uint8_t uselen = 0;
 
-		union {
-			uint8_t frequencyAndRandomness;
-			struct {
-				uint8_t clockDivider : 3;
-				uint8_t lfsrWifth : 1;
-				uint8_t clockShift : 4;
-			};
-		};
+		bool enable = false;
+		int16_t lengthtimer = 64;
+		int16_t periodtimer = 0;
+		int16_t envelopetimer = 0;
+		int16_t period = 8;
+		uint16_t shiftregister = 1;
+		int16_t lfsrfeed = 0x4000;
+		int16_t frametimer = 0x2000;
+		uint8_t frame = 0;
+		uint8_t volume = 0;
 
-		union {
-			uint8_t control;
-			struct {
-				uint8_t controlUnused : 6;
-				uint8_t lengthEnable : 1;
-				uint8_t trigger : 1;
-			};
-		};
-
+		uint8_t ReadRegister(uint8_t reg);
+		void WriteRegister(uint8_t reg, uint8_t value);
+		void Step();
+		void TickFrame();
+		int16_t Sample();
 		void Trigger();
 
-	} noise;
+	} noiseChannel;
 
 public:
-	uint8_t ReadNR10();
-	uint8_t ReadNR11();
-	uint8_t ReadNR12();
-	uint8_t ReadNR13();
-	uint8_t ReadNR14();
-	uint8_t ReadNR21();
-	uint8_t ReadNR22();
-	uint8_t ReadNR23();
-	uint8_t ReadNR24();
-	uint8_t ReadNR30();
-	uint8_t ReadNR31();
-	uint8_t ReadNR32();
-	uint8_t ReadNR33();
-	uint8_t ReadNR34();
-	uint8_t ReadNR41();
-	uint8_t ReadNR42();
-	uint8_t ReadNR43();
-	uint8_t ReadNR44();
 	uint8_t ReadNR50();
 	uint8_t ReadNR51();
 	uint8_t ReadNR52();
-	uint8_t ReadWavePattern(uint16_t address);
 	uint8_t ReadPCM12();
 	uint8_t ReadPCM34();
 
-	void WriteNR10(uint8_t value);
-	void WriteNR11(uint8_t value);
-	void WriteNR12(uint8_t value);
-	void WriteNR13(uint8_t value);
-	void WriteNR14(uint8_t value);
-	void WriteNR21(uint8_t value);
-	void WriteNR22(uint8_t value);
-	void WriteNR23(uint8_t value);
-	void WriteNR24(uint8_t value);
-	void WriteNR30(uint8_t value);
-	void WriteNR31(uint8_t value);
-	void WriteNR32(uint8_t value);
-	void WriteNR33(uint8_t value);
-	void WriteNR34(uint8_t value);
-	void WriteNR41(uint8_t value);
-	void WriteNR42(uint8_t value);
-	void WriteNR43(uint8_t value);
-	void WriteNR44(uint8_t value);
 	void WriteNR50(uint8_t value);
 	void WriteNR51(uint8_t value);
 	void WriteNR52(uint8_t value);
-	void WriteWavePattern(uint16_t address, uint8_t value);
 };
 

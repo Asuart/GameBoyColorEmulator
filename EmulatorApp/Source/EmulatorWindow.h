@@ -6,6 +6,7 @@
 #include "GBCEmulator.h"
 #include "ButtonMap.h"
 #include "EmulatorWindowUI.h"
+#include "../../PixieNoise/PixieNoise.h"
 
 class EmulatorWindowUI;
 

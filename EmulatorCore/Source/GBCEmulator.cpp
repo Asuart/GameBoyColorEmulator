@@ -26,7 +26,7 @@ void GBCEmulator::Run(uint32_t cpuCycles) {
 		clockAligner -= cycles;
 		timer.Step(cycles);
 		dma.Step(cycles);
-		//spu.Step(cycles);
+		spu.Step(cycles);
 		ppu.StepScanlineMode(cycles);
 	}
 }

@@ -12,12 +12,19 @@ EmulatorWindow::EmulatorWindow(uint32_t _width, uint32_t _height)
 
 	m_mainWindow = glfwCreateWindow(m_width, m_height, "Game Boy Color Emulator", NULL, NULL);
 	glfwMakeContextCurrent(m_mainWindow);
+	glfwSwapInterval(0);
 	glfwSetInputMode(m_mainWindow, GLFW_STICKY_KEYS, GL_TRUE);
 
 	if (!gladLoadGL()) {
 		std::cout << "GLAD failed to initialize\n";
 		exit(2);
 	}
+
+	if (!PixieNoise::Initialize()) {
+		std::cout << "PixieNoise failed to initialize\n";
+		exit(3);
+	}
+	PixieNoise::ListAudioDevices();
 
 	glClearColor(0.03f, 0.09f, 0.13f, 1.0f);
 
@@ -297,28 +304,37 @@ FileAccessState EmulatorWindow::SaveStateToFile() {
 
 void EmulatorWindow::Start() {
 	double lastTime = glfwGetTime();
+	PixieNoise::Streamer* streamer = new PixieNoise::Streamer(4);
 	while (!glfwWindowShouldClose(m_mainWindow)) {
 		glfwPollEvents();
 		UpdateKeyStates();
 
-		if(!IsPaused()) m_emulator.Run(GBCEmulator::FrameCycles);
+		if (!IsPaused()) {
+			m_emulator.Run(GBCEmulator::FrameCycles);
+		}
 
 		UpdateScreen();
-
-		double newTime = glfwGetTime();
-		double deltaTime = newTime - lastTime;
-		lastTime = newTime;
-		std::string windowTitle = "GBC Emulator: " + m_emulator.GetROMName() + " (" + std::to_string(deltaTime * 1000) + "ms)";
-		glfwSetWindowTitle(m_mainWindow, windowTitle.c_str());
-
-		if (deltaTime < m_targetFrameTime) {
-			glfwWaitEventsTimeout(m_targetFrameTime - deltaTime);
-		}
 
 		if (m_emulator.IsFrameReady()) {
 			m_emulator.ResetFrameReadyFlag();
 		}
+
+		streamer->QueueSamples(m_emulator.spu.GetSamples(), m_emulator.spu.GetSamplesCount(), spuSampleRate, true);
+		m_emulator.spu.ClearSamples();
+
+		double newTime = glfwGetTime();
+		double deltaTime = (newTime - lastTime);
+		while (deltaTime < m_targetFrameTime) {
+			newTime = glfwGetTime();
+			deltaTime = (newTime - lastTime);
+		}
+		lastTime = newTime;
+		std::string windowTitle = "GBC Emulator: " + m_emulator.GetROMName() + " (" + std::to_string(deltaTime * 1000) + "ms)";
+		glfwSetWindowTitle(m_mainWindow, windowTitle.c_str());
 	}
+
+	delete streamer;
+	PixieNoise::Destroy();
 }
 
 void EmulatorWindow::UpdateScreen() {
@@ -329,9 +345,9 @@ void EmulatorWindow::UpdateScreen() {
 		m_emulator.ppu.frameBuffers[!m_emulator.ppu.activeFrame].pixels.data(),
 		GL_RGB, GL_FLOAT
 	);
-
+	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	
 	// Draw layout to texture
 	m_layoutFrameBuffer->Bind();
 	glViewport(0, 0, layoutWidth, layoutHeight);
@@ -339,7 +355,7 @@ void EmulatorWindow::UpdateScreen() {
 	m_ui->Draw();
 	m_ui->PrintState();
 	m_layoutFrameBuffer->Unbind();
-
+	
 	// Draw layout texture, scaled to fit window
 	glViewport(0, 0, m_width, m_height);
 	PixieUI::Renderer::DrawScreenPlane(m_layoutFrameBuffer->m_colorAttachment, layoutWidth, layoutHeight, m_width, m_height);
@@ -378,7 +394,7 @@ bool EmulatorWindow::WriteSaveStateFile(SaveState* state) {
 SaveState* EmulatorWindow::ReadSaveStateFile() {
 	std::ifstream reader("saves/" + m_emulator.GetROMName() + ".sav", std::ios::in | std::ios::binary | std::ios::ate);
 	if (!reader.is_open()) return nullptr;
-	uint32_t size = reader.tellg();
+	uint32_t size = (uint32_t)reader.tellg();
 	reader.seekg(std::ios::beg);
 	SaveState* state = new SaveState(m_emulator.GetROMName());
 	state->data.resize(size);

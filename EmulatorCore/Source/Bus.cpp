@@ -50,42 +50,14 @@ uint8_t Bus::Read8(uint16_t  address, bool isDMAAccess) {
 			return timer.ReadTAC();
 		case 0x0f:
 			return cpu.IF;
-		case 0x10:
-			return spu.ReadNR10();
-		case 0x11:
-			return spu.ReadNR11();
-		case 0x12:
-			return spu.ReadNR12();
-		case 0x13:
-			return spu.ReadNR13();
-		case 0x14:
-			return spu.ReadNR14();
-		case 0x16:
-			return spu.ReadNR21();
-		case 0x17:
-			return spu.ReadNR22();
-		case 0x18:
-			return spu.ReadNR23();
-		case 0x19:
-			return spu.ReadNR24();
-		case 0x1a:
-			return spu.ReadNR30();
-		case 0x1b:
-			return spu.ReadNR11();
-		case 0x1c:
-			return spu.ReadNR32();
-		case 0x1d:
-			return spu.ReadNR33();
-		case 0x1e:
-			return spu.ReadNR34();
-		case 0x20:
-			return spu.ReadNR41();
-		case 0x21:
-			return spu.ReadNR42();
-		case 0x22:
-			return spu.ReadNR43();
-		case 0x23:
-			return spu.ReadNR44();
+		case 0x10: case 0x11: case 0x12: case 0x13: case 0x14:
+			return spu.sweepChannel.ReadRegister(address - 0xff10);
+		case 0x15: case 0x16: case 0x17: case 0x18: case 0x19:
+			return spu.toneChannel.ReadRegister(address - 0xff15);
+		case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e:
+			return spu.waveChannel.ReadRegister(address - 0xff1a);
+		case 0x1f: case 0x20: case 0x21: case 0x22: case 0x23:
+			return spu.noiseChannel.ReadRegister(address - 0xff1f);
 		case 0x24:
 			return spu.ReadNR50();
 		case 0x25:
@@ -94,7 +66,7 @@ uint8_t Bus::Read8(uint16_t  address, bool isDMAAccess) {
 			return spu.ReadNR52();
 		case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
 		case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-			return spu.ReadWavePattern(address);
+			return spu.waveChannel.ReadWaveByte(address - 0xff30);
 		case 0x40:
 			return ppu.ReadLCDC();
 		case 0x41:
@@ -206,59 +178,17 @@ void Bus::Write8(uint16_t address, uint8_t value, bool isDMAAccess) {
 		case 0x0f:
 			cpu.IF = value;
 			return;
-		case 0x10:
-			spu.WriteNR10(value);
+		case 0x10: case 0x11: case 0x12: case 0x13: case 0x14:
+			spu.sweepChannel.WriteRegister(address - 0xff10, value);
 			return;
-		case 0x11:
-			spu.WriteNR11(value);
+		case 0x15: case 0x16: case 0x17: case 0x18: case 0x19:
+			spu.toneChannel.WriteRegister(address - 0xff15, value);
 			return;
-		case 0x12:
-			spu.WriteNR12(value);
+		case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e:
+			spu.waveChannel.WriteRegister(address - 0xff1a, value);
 			return;
-		case 0x13:
-			spu.WriteNR13(value);
-			return;
-		case 0x14:
-			spu.WriteNR14(value);
-			return;
-		case 0x16:
-			spu.WriteNR21(value);
-			return;
-		case 0x17:
-			spu.WriteNR22(value);
-			return;
-		case 0x18:
-			spu.WriteNR23(value);
-			return;
-		case 0x19:
-			spu.WriteNR24(value);
-			return;
-		case 0x1a:
-			spu.WriteNR30(value);
-			return;
-		case 0x1b:
-			spu.WriteNR11(value);
-			return;
-		case 0x1c:
-			spu.WriteNR32(value);
-			return;
-		case 0x1d:
-			spu.WriteNR33(value);
-			return;
-		case 0x1e:
-			spu.WriteNR34(value);
-			return;
-		case 0x20:
-			spu.WriteNR41(value);
-			return;
-		case 0x21:
-			spu.WriteNR42(value);
-			return;
-		case 0x22:
-			spu.WriteNR43(value);
-			return;
-		case 0x23:
-			spu.WriteNR44(value);
+		case 0x1f: case 0x20: case 0x21: case 0x22: case 0x23:
+			spu.noiseChannel.WriteRegister(address - 0xff1f, value);
 			return;
 		case 0x24:
 			spu.WriteNR50(value);
@@ -271,7 +201,7 @@ void Bus::Write8(uint16_t address, uint8_t value, bool isDMAAccess) {
 			return;
 		case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
 		case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-			spu.WriteWavePattern(address, value);
+			spu.waveChannel.WriteWaveByte(address - 0xff30, value);
 			return;
 		case 0x40:
 			ppu.WriteLCDC(value);

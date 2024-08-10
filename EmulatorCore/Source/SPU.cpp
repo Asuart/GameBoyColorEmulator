@@ -18,7 +18,7 @@ void SPU::ClearSamples() {
 	uint32_t sampleAlign = sampleCounter % 4;
 	if (sampleAlign) {
 		for (uint32_t i = 0; i < sampleAlign; i++) {
-			//samples[i] = samples[sampleCounter - sampleAlign + i];
+			samples[i] = samples[sampleCounter - sampleAlign + i];
 		}
 	}
 	sampleCounter = sampleAlign;
@@ -35,12 +35,16 @@ int16_t* SPU::GetSamples() {
 void SPU::Step(uint32_t cpuClocks) {
 	//if (!audioOn) return;
 	const int16_t scale = SHRT_MAX / 4;
-	clockAccumulator += cpuClocks / 4;
+	clockAccumulator += cpuClocks;
 	
 	while (clockAccumulator >= (spuSampleClock)) {
-		pulse1.Step();
-		uint16_t sample = pulse1.Sample();
-		samples[sampleCounter % samples.size()] = scale * sample / 8;
+		toneChannel.Step();
+		sweepChannel.Step();
+		waveChannel.Step();
+		noiseChannel.Step();
+		uint16_t sample = sweepChannel.Sample() + toneChannel.Sample() + waveChannel.Sample() + noiseChannel.Sample();
+		//uint16_t sample = sweepChannel.Sample();
+		samples[sampleCounter % samples.size()] = scale * sample / 32;
 		clockAccumulator -= spuSampleClock;
 		sampleCounter++;
 	}
@@ -54,10 +58,10 @@ void SPU::Tick() {
 }
 
 void SPU::TickSoundLength() {
-	if (pulse1.active) {
-		pulse1.initialLengthTimer++;
-		if (pulse1.initialLengthTimer == 0) pulse1.active = false;
-	}
+	//if (pulse1.active) {
+	//	pulse1.initialLengthTimer++;
+	//	if (pulse1.initialLengthTimer == 0) pulse1.active = false;
+	//}
 }
 
 void SPU::TickFrequencySweep() {
@@ -78,78 +82,6 @@ void SPU::LoadState(uint8_t* state) {
 
 }
 
-uint8_t SPU::ReadNR10() {
-	return 0x00;
-}
-
-uint8_t SPU::ReadNR11() {
-	return pulse1.waveDuty << 6;;
-}
-
-uint8_t SPU::ReadNR12() {
-	return pulse1.volumeAndEnvelope;
-}
-
-uint8_t SPU::ReadNR13() {
-	return 0x00;
-}
-
-uint8_t SPU::ReadNR14() {
-	return pulse1.lengthEnabled << 6;
-}
-
-uint8_t SPU::ReadNR21() {
-	return pulse2.lengthAndDuty;
-}
-
-uint8_t SPU::ReadNR22() {
-	return pulse2.volumeAndEnvelope;
-}
-
-uint8_t SPU::ReadNR23() {
-	return pulse2.periodLow;
-}
-
-uint8_t SPU::ReadNR24() {
-	return pulse2.periodHighAndControl;
-}
-
-uint8_t SPU::ReadNR30() {
-	return wave.dacEnable;
-}
-
-uint8_t SPU::ReadNR31() {
-	return wave.lengthTimer;
-}
-
-uint8_t SPU::ReadNR32() {
-	return wave.outputLevel;
-}
-
-uint8_t SPU::ReadNR33() {
-	return wave.periodLow;
-}
-
-uint8_t SPU::ReadNR34() {
-	return wave.periodHighAndControl;
-}
-
-uint8_t SPU::ReadNR41() {
-	return noise.lengthTimer;
-}
-
-uint8_t SPU::ReadNR42() {
-	return noise.volumeAndEnvelope;
-}
-
-uint8_t SPU::ReadNR43() {
-	return noise.frequencyAndRandomness;
-}
-
-uint8_t SPU::ReadNR44() {
-	return noise.control;
-}
-
 uint8_t SPU::ReadNR50() {
 	return masterVolumeAndVIN;
 }
@@ -159,12 +91,8 @@ uint8_t SPU::ReadNR51() {
 }
 
 uint8_t SPU::ReadNR52() {
-	ch1On = pulse1.active;
+	ch1On = toneChannel.enable;
 	return audioMasterControl;
-}
-
-uint8_t SPU::ReadWavePattern(uint16_t address) {
-	return wave.pattern[address & 0xf];
 }
 
 uint8_t SPU::ReadPCM12() {
@@ -173,98 +101,6 @@ uint8_t SPU::ReadPCM12() {
 
 uint8_t SPU::ReadPCM34() {
 	return 0x00;
-}
-
-void SPU::WriteNR10(uint8_t value) {
-	return;
-}
-
-void SPU::WriteNR11(uint8_t value) {
-	pulse1.lengthAndDuty = value;
-	pulse1.lengthTimer = 64 - pulse1.initialLengthTimer;
-}
-
-void SPU::WriteNR12(uint8_t value) {
-	pulse1.volumeAndEnvelope = value;
-	if (pulse1.initialVolume == 0 && pulse1.envelopeDirection == 0) {
-		pulse1.active = false;
-	}
-}
-
-void SPU::WriteNR13(uint8_t value) {
-	pulse1.periodLowBuffer = value;
-	pulse1.soundPeriod = (pulse1.soundPeriod & 0x700) + value;
-	pulse1.framePeriod = 4 * (0x800 - pulse1.soundPeriod);
-}
-
-void SPU::WriteNR14(uint8_t value) {
-	pulse1.periodHighBuffer = value & 0x7;
-	pulse1.trigger = value & 0x80;
-	pulse1.lengthEnabled = value & 0x40;
-	pulse1.soundPeriod = ((value << 8) & 0x0700) + (pulse1.soundPeriod & 0xff);
-	pulse1.framePeriod = 4 * (0x800 - pulse1.soundPeriod);
-	if (pulse1.trigger) pulse1.Trigger();
-}
-
-void SPU::WriteNR21(uint8_t value) {
-	pulse2.lengthAndDuty = value;
-	pulse2.lengthTimer = 64 - pulse2.initialLengthTimer;
-}
-
-void SPU::WriteNR22(uint8_t value) {
-	pulse2.volumeAndEnvelope = value;
-	if (pulse2.initialVolume == 0 && pulse2.envelopeDirection == 0) pulse2.active = false;
-}
-
-void SPU::WriteNR23(uint8_t value) {
-	pulse2.periodLowBuffer = value;
-}
-
-void SPU::WriteNR24(uint8_t value) {
-	pulse2.periodHighBuffer = value & 0x7;
-	pulse2.trigger = value & 0x80;
-	pulse2.lengthEnabled = value & 0x40;
-	if (pulse2.trigger) pulse2.Trigger();
-}
-
-void SPU::WriteNR30(uint8_t value) {
-	wave.dacEnable = value;
-}
-
-void SPU::WriteNR31(uint8_t value) {
-	wave.lengthTimer = value;
-}
-
-void SPU::WriteNR32(uint8_t value) {
-	wave.outputLevel = value;
-}
-
-void SPU::WriteNR33(uint8_t value) {
-	wave.periodLowBuffer = value;
-}
-
-void SPU::WriteNR34(uint8_t value) {
-	wave.periodHighBuffer = value & 0x7;
-	wave.trigger = value & 0x80;
-	wave.lengthEnable = value & 0x40;
-	if (wave.trigger) wave.Trigger();
-}
-
-void SPU::WriteNR41(uint8_t value) {
-	noise.lengthTimer = value;
-}
-
-void SPU::WriteNR42(uint8_t value) {
-	noise.volumeAndEnvelope = value;
-}
-
-void SPU::WriteNR43(uint8_t value) {
-	noise.frequencyAndRandomness = value;
-}
-
-void SPU::WriteNR44(uint8_t value) {
-	noise.control = value;
-	if (noise.trigger) noise.Trigger();
 }
 
 void SPU::WriteNR50(uint8_t value) {
@@ -279,85 +115,382 @@ void SPU::WriteNR52(uint8_t value) {
 	audioOn = value & 0x80;
 }
 
-void SPU::WriteWavePattern(uint16_t address, uint8_t value) {
-	wave.pattern[address & 0xf] = value;
+
+uint8_t SPU::ToneChannel::ReadRegister(uint8_t reg) {
+	switch (reg) {
+	case 0:
+		return 0;
+	case 1:
+		return wavsel << 6;
+	case 2:
+		return envini << 4 | envdir << 3 | envper;
+	case 3:
+		return 0;
+	case 4:
+		return uselen << 6;
+	default:
+		std::cout << "Read from out of range pulse register.\n";
+		return 0xff;
+	}
 }
 
-SPU::PulseChannel::PulseChannel() {
-	initialVolume = 0;
-	envelopeDirection = 0;
-	sweepPace = 0;
-	soundPeriod = 0;
-	lengthEnabled = 0;
-	activePace = 0x00;
-	lengthAndDuty = 0x00;
-	volumeAndEnvelope = 0x00;
-	periodLow = 0x00;
-	periodHighAndControl = 0x00;
-	periodLowBuffer = 0x00;
-	periodHighBuffer = 0x00;
-	waveCycle = 0x00;
-	active = false;
-	lengthTimer = 64;
-	periodTimer = 0;
-	envelopeTimer = 0;
-	framePeriod = 4;
-	waveDuty = 0;
-	frameTimer = 0x2000;
-	frame = 0;
-	volume = 0;
+void SPU::ToneChannel::WriteRegister(uint8_t reg, uint8_t value) {
+	switch (reg) {
+	case 0: break;
+	case 1:
+		wavsel = value >> 6;
+		sndlen = value & 0x1f;
+		lengthtimer = 64 - sndlen;
+		break;
+	case 2:
+		envini = value >> 4;
+		envdir = (value >> 3) & 1;
+		envper = value & 0x7;
+		if (envini == 0 && envdir == 0) {
+			enable = false;
+		}
+		break;
+	case 3:
+		sndper = (sndper & 0x700) + value;
+		period = 4 * (0x800 - sndper);
+		break;
+	case 4:
+		uselen = (value >> 6) & 1;
+		sndper = ((value << 8) & 0x700) + (sndper & 0xff);
+		period = 4 * (0x800 - sndper);
+		if (value & 0x80) {
+			Trigger();
+		}
+		break;
+	default:
+		std::cout << "Write to out of range pulse register.\n";
+	}
 }
 
-void SPU::PulseChannel::Step() {
-	periodTimer -= spuSampleClock;
-	while (periodTimer <= 0) {
-		periodTimer += framePeriod;
-		waveCycle = (waveCycle + 1) % 16;
+void SPU::ToneChannel::Step() {
+	periodtimer -= spuSampleClock;
+	while (periodtimer <= 0) {
+		periodtimer += period;
+		waveframe = (waveframe + 1) % 8;
 	}
 
-	frameTimer -= spuSampleClock;
-	while (frameTimer <= 0) {
-		frameTimer += 0x2000;
+	frametimer -= spuSampleClock;
+	while (frametimer <= 0) {
+		frametimer += 0x2000;
 		TickFrame();
 	}
 }
 
-void SPU::PulseChannel::TickFrame() {
+void SPU::ToneChannel::TickFrame() {
 	frame = (frame + 1) % 8;
-	if (lengthEnabled && (frame & 1) == 0 && lengthTimer > 0) {
-		lengthTimer--;
-		if (lengthTimer == 0) {
-			active = false;
+	if (uselen && (frame & 1) == 0 && lengthtimer > 0) {
+		lengthtimer--;
+		if (lengthtimer == 0) {
+			enable = false;
 		}
 	}
-	if (frame == 7 && envelopeTimer != 0) {
-		envelopeTimer -= 1;
-		if (envelopeTimer == 0) {
-			int32_t newVolume = volume + envelopeDirection ? 1 : -1;
+	if (frame == 7 && envelopetimer != 0) {
+		envelopetimer -= 1;
+		if (envelopetimer == 0) {
+			int32_t newVolume = volume + envdir ? 1 : -1;
 			if (!(newVolume < 0 || newVolume > 15)) {
-				envelopeTimer = sweepPace;
+				envelopetimer = envper;
 				volume = newVolume;
 			}
 		}
 	}
 }
 
-int16_t SPU::PulseChannel::Sample() {
-	return (volume + 1) * ((dutyCycles[waveDuty] >> waveCycle) & 1);
+int16_t SPU::ToneChannel::Sample() {
+	return enable ? ((volume + 1) * ((dutyCycles[wavsel] >> waveframe) & 1)) : 0;
 }
 
-void SPU::PulseChannel::Trigger() {
-	active = !(sweepPace == 0 && initialVolume == 0);
-	lengthTimer = lengthTimer ? lengthTimer : 64;
-	periodTimer = period;
-	envelopeTimer = sweepPace;
-	volume = initialVolume;
+void SPU::ToneChannel::Trigger() {
+	enable = true;
+	lengthtimer = lengthtimer ? lengthtimer : 64;
+	periodtimer = period;
+	envelopetimer = envper;
+	volume = envini;
+	if (envper == 0 && envini == 0) {
+		enable = false;
+	}
+}
+
+uint8_t SPU::SweepChannel::ReadRegister(uint8_t reg) {
+	if (reg == 0) {
+		return swpper << 4 | swpdir << 3 | swpmag;
+	}
+	else {
+		return SPU::ToneChannel::ReadRegister(reg);
+	}
+}
+
+void SPU::SweepChannel::WriteRegister(uint8_t reg, uint8_t value) {
+	if (reg == 0) {
+		swpper = (value >> 4) & 0x7;
+		swpdir = (value >> 3) & 0x1;
+		swpmag = value & 0x7;
+	}
+	else {
+		SPU::ToneChannel::WriteRegister(reg, value);
+	}
+}
+
+void SPU::SweepChannel::TickFrame() {
+	SPU::ToneChannel::TickFrame();
+	if (sweepenable && swpper && (frame & 3) == 2) {
+		sweeptimer--;
+		if (sweeptimer == 0 && Sweep(true)) {
+			sweeptimer = swpper;
+			Sweep(false);
+		}
+	}
+}
+
+void SPU::SweepChannel::Trigger() {
+	SPU::ToneChannel::Trigger();
+	shadow = sndper;
+	sweeptimer = swpper;
+	sweepenable = swpper | swpmag;
+	if (swpmag) {
+		Sweep(false);
+	}
+}
+
+bool SPU::SweepChannel::Sweep(bool save) {
+	int16_t newper = 0;
+	if (swpdir) {
+		newper = shadow + (shadow >> swpmag);
+	}
+	else {
+		newper = shadow - (shadow >> swpmag);
+	}
+	if (newper >= 0x800) {
+		enable = false;
+		return false;
+	}
+	else {
+		sndper = shadow = newper;
+		period = 4 * (0x800 - sndper);
+		return true;
+	}
+}
+
+uint8_t SPU::WaveChannel::ReadRegister(uint8_t reg) {
+	switch (reg) {
+	case 0:
+		return (dacpow << 7) | 0x7f;
+	case 1:
+		return 0xff;
+	case 2:
+		return (volreg << 5) | 0x9f;
+	case 3:
+		return 0xff;
+	case 4:
+		return (uselen << 6) | 0xbf;
+	default:
+		std::cout << "Read from out of range wave channel register.\n";
+		return 0xff;
+	}
+}
+
+void SPU::WaveChannel::WriteRegister(uint8_t reg, uint8_t value) {
+	switch (reg) {
+	case 0:
+		dacpow = value >> 7;
+		if (dacpow == 0) {
+			enable = false;
+		}
+		break;
+	case 1:
+		sndlen = value;
+		lengthtimer = 256 - sndlen;
+		break;
+	case 2:
+		volreg = (value >> 5) & 0x3;
+		volumeshift = (volreg > 0) ? volreg - 1 : 4;
+		break;
+	case 3:
+		sndper = (sndper & 0x700) + value;
+		period = 2 * (0x800 - sndper);
+		break;
+	case 4:
+		uselen = (value >> 6) & 0x1;
+		sndper = ((value << 8) & 0x700) + (sndper & 0xff);
+		period = 2 * (0x800 - sndper);
+		if (value & 0x80) {
+			Trigger();
+		}
+		break;
+	default:
+		std::cout << "Write to out of range wave channel register.\n";
+	}
+}
+
+uint8_t SPU::WaveChannel::ReadWaveByte(uint8_t offset) {
+	if (dacpow) {
+		return wavetable[waveframe % 16];
+	}
+	else {
+		return wavetable[offset % 16];
+	}
+}
+
+void SPU::WaveChannel::WriteWaveByte(uint8_t offset, uint8_t value) {
+	if (dacpow) {
+		wavetable[waveframe % 16] = value;
+	}
+	else {
+		wavetable[offset % 16] = value;
+	}
+}
+
+void SPU::WaveChannel::Step() {
+	periodtimer -= spuSampleClock;
+	while (periodtimer <= 0) {
+		periodtimer += period;
+		waveframe = (waveframe + 1) % 32;
+	}
+
+	frametimer -= spuSampleClock;
+	while (frametimer <= 0) {
+		frametimer += 0x2000;
+		TickFrame();
+	}
+}
+
+void SPU::WaveChannel::TickFrame() {
+	frame = (frame + 1) % 8;
+	if (uselen && (frame & 1) == 0 && lengthtimer > 0) {
+		lengthtimer--;
+		if (lengthtimer == 0) {
+			enable = false;
+		}
+	}
+}
+
+int16_t SPU::WaveChannel::Sample() {
+	if (enable && dacpow) {
+		int16_t sample = (wavetable[waveframe / 2] >> (waveframe % 2 ? 0 : 4)) & 0xf;
+		return sample >> volumeshift;
+	}
+	return 0;
 }
 
 void SPU::WaveChannel::Trigger() {
+	enable = dacpow;
+	if (lengthtimer == 0) lengthtimer = 256;
+	periodtimer = period;
+}
 
+uint8_t SPU::NoiseChannel::ReadRegister(uint8_t reg) {
+	switch (reg) {
+	case 0: case 1:
+		return 0xff;
+	case 2:
+		return envini << 4 | envdir << 3 | envper;
+	case 3:
+		return clkpow << 4 | regwid << 3 | clkdiv;
+	case 4:
+		return uselen << 6 | 0xbf;
+	default:
+		std::cout << "Read from out of range noise channel register.\n";
+		return 0xff;
+	}
+}
+
+void SPU::NoiseChannel::WriteRegister(uint8_t reg, uint8_t value) {
+	switch (reg) {
+	case 0: break;
+	case 1:
+		sndlen = value & 0x1f;
+		lengthtimer = 64 - sndlen;
+		break;
+	case 2:
+		envini = (value >> 4) & 0xf;
+		envdir = (value >> 3) & 0x1;
+		envper = value & 0x7;
+		if (envini == 0 && envdir == 0) {
+			enable = false;
+		}
+		break;
+	case 3:
+		clkpow = (value >> 4) & 0xf;
+		regwid = (value >> 3) & 0x1;
+		clkdiv = value & 0x7;
+		period = divtable[clkdiv] << clkpow;
+		lfsrfeed = regwid ? 0x4040 : 0x4000;
+		break;
+	case 4:
+		uselen = (value >> 6) & 0x1;
+		if (value & 0x80) {
+			Trigger();
+		}
+		break;
+	default:
+		std::cout << "Write to out of range noise channel register.\n";
+	}
+}
+
+void SPU::NoiseChannel::Step() {
+	periodtimer -= spuSampleClock;
+	while (periodtimer <= 0) {
+		periodtimer += period;
+		uint16_t tap = shiftregister;
+		shiftregister >>= 1;
+		tap != shiftregister;
+		if (tap & 0x1) {
+			shiftregister |= lfsrfeed;
+		}
+		else {
+			shiftregister &= ~lfsrfeed;
+		}
+	}
+
+	frametimer -= spuSampleClock;
+	while (frametimer <= 0) {
+		frametimer += 0x2000;
+	}
+	TickFrame();
+}
+
+void SPU::NoiseChannel::TickFrame() {
+	frame = (frame + 1) % 8;
+	if (uselen && (frame & 1) == 0 && lengthtimer > 0) {
+		lengthtimer--;
+		if (lengthtimer == 0) {
+			enable = false;
+		}
+	}
+
+	if (frame == 7 && envelopetimer > 0) {
+		envelopetimer--;
+		if (envelopetimer == 0) {
+			int16_t newvolume = volume + envdir ? 1 : -1;
+			if (newvolume < 0 || newvolume > 15) {
+				envelopetimer = 0;
+			}
+			else {
+				envelopetimer = envper;
+				volume = newvolume;
+			}
+		}
+	}
+}
+
+int16_t SPU::NoiseChannel::Sample() {
+	if (!enable) return 0;
+	return (shiftregister & 0x1) ? volume : 0;
 }
 
 void SPU::NoiseChannel::Trigger() {
-
+	enable = true;
+	if (lengthtimer == 0) lengthtimer = 64;
+	periodtimer = period;
+	envelopetimer = envper;
+	volume = envini;
+	shiftregister = 0x7fff;
+	if (envper == 0 && envini == 0) {
+		enable = false;
+	}
 }
