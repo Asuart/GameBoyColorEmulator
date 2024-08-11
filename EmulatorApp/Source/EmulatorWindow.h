@@ -35,6 +35,7 @@ public:
 	FileAccessState SaveSettings();
 	float GetVolume();
 	void SetVolume(float value);
+	void StepEmulation();
 
 protected:
 	uint32_t m_width;
@@ -49,6 +50,7 @@ protected:
 	EmulatorButton m_keyToRebind = EmulatorButton::A;
 	bool m_paused = false;
 	float m_volume = 100.0f;
+	bool m_step = false;
 
 	void UpdateScreen();
 	void UpdateKeyStates();

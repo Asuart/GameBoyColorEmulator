@@ -31,6 +31,14 @@ void GBCEmulator::Run(uint32_t cpuCycles) {
 	}
 }
 
+void GBCEmulator::Step() {
+	uint32_t cycles = cpu.Step();
+	timer.Step(cycles);
+	dma.Step(cycles);
+	spu.Step(cycles);
+	ppu.StepScanlineMode(cycles);
+}
+
 bool GBCEmulator::IsFrameReady() {
 	return ppu.frameReady;
 }

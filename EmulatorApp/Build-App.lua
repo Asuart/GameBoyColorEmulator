@@ -5,7 +5,7 @@ project "EmulatorApp"
    targetdir "build/%{cfg.buildcfg}"
    staticruntime "off"
 
-   files { "Source/**.h", "Source/**.cpp" }
+   files { "Source/**.h", "Source/**.cpp", "../PixieNoise/**.h", "../PixieNoise/**.cpp" }
 
    includedirs
    {
@@ -20,7 +20,8 @@ project "EmulatorApp"
    {
       "EmulatorCore",
       "PixieUI",
-	  "glfw3.lib"
+	  "glfw3.lib",
+      "OpenAL32.lib",
    }
 
    libdirs { "../dependencies/PixieUI/dependencies/GLFW/lib-vc2022-64/" }

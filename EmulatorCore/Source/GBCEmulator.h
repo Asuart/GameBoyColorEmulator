@@ -46,6 +46,7 @@ public:
 	void Reset();
 	bool LoadROM(uint8_t* data, uint32_t romSize);
 	void Run(uint32_t cpuCycles);
+	void Step();
 	bool IsFrameReady();
 	void ResetFrameReadyFlag();
 	SaveState* GetSaveState();

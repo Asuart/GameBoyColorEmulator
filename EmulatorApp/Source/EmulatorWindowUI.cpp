@@ -61,6 +61,10 @@ EmulatorWindowUI::EmulatorWindowUI(EmulatorWindow& parent, GBCEmulator& emulator
 					m_emulator.Reset();
 					return true;
 				}),
+				PixieUI::ButtonConfig("Exit", [&](int32_t, int32_t) {
+					glfwSetWindowShouldClose(m_parent.m_mainWindow, true);
+					return true;
+				}),
 			})
 		),
 		PixieUI::MenuButtonConfig(

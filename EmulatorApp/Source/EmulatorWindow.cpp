@@ -117,6 +117,10 @@ void EmulatorWindow::HandleKeyEvent(int32_t key, int32_t scancode, int32_t actio
 			m_paused = false;
 		}
 
+		if (m_paused && key == m_buttonMap.mappings[(uint32_t)EmulatorButton::Step]) {
+			StepEmulation();
+		}
+
 		if (key == m_buttonMap.mappings[(uint32_t)EmulatorButton::SaveState]) {
 			SaveStateToFile();
 		}
@@ -325,6 +329,10 @@ void EmulatorWindow::Start() {
 		if (!IsPaused()) {
 			m_emulator.Run(GBCEmulator::FrameCycles);
 		}
+		else if (m_step) {
+			m_emulator.Step();
+			m_step = false;
+		}
 
 		UpdateScreen();
 
@@ -433,4 +441,8 @@ void EmulatorWindow::SetVolume(float value) {
 	if (value < 0.0f) value = 0.0f;
 	else if (value > 200.0f) value = 200.0f;
 	m_volume = value;
+}
+
+void EmulatorWindow::StepEmulation() {
+	m_step = true;
 }
