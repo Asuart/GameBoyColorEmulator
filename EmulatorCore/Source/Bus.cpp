@@ -304,7 +304,3 @@ void Bus::Write16(uint16_t address, uint16_t value) {
 OAMEntry* Bus::GetOAMEntry(uint8_t index) {
 	return mmc->GetOAMEntry(index);
 }
-
-void Bus::TriggerSPUTick() {
-	spu.Tick();
-}

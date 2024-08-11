@@ -17,11 +17,7 @@ public:
 	uint32_t GetSamplesCount();
 	int16_t* GetSamples();
 
-	void Step(uint32_t cpuCLocks);
-	void Tick();
-	void TickSoundLength();
-	void TickFrequencySweep();
-	void TickEnvelopeSweep();
+	void Step(uint32_t cpuClocks);
 
 	void WriteState(SaveState& state);
 	void LoadState(uint8_t* state);
@@ -157,12 +153,12 @@ public:
 		uint8_t uselen = 0;
 
 		bool enable = false;
-		int16_t lengthtimer = 64;
-		int16_t periodtimer = 0;
-		int16_t envelopetimer = 0;
-		int16_t period = 8;
+		uint8_t lengthtimer = 64;
+		int32_t periodtimer = 0;
+		uint8_t envelopetimer = 0;
+		int32_t period = 8;
 		uint16_t shiftregister = 1;
-		int16_t lfsrfeed = 0x4000;
+		uint16_t lfsrfeed = 0x4000;
 		int16_t frametimer = 0x2000;
 		uint8_t frame = 0;
 		uint8_t volume = 0;

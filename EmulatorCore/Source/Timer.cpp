@@ -18,7 +18,6 @@ void Timer::Step(uint32_t cycles) {
 	uint8_t initialDIV = DIV;
 	DIV += DIVClockAccumulator >> 8;
 	DIVClockAccumulator &= 0xff;
-	if (((initialDIV >> 4) & 1) && !((DIV >> 4) & 1)) bus.TriggerSPUTick();
 
 	if ((TAC & 0b100) == 0) return;
 	TIMAClockAccumulator += cycles;
@@ -50,7 +49,6 @@ uint8_t Timer::ReadTAC() {
 }
 
 void Timer::WriteDIV(uint8_t value) {
-	if ((DIV >> 4) & 1) bus.TriggerSPUTick();
 	DIV = 0;
 	DIVClockAccumulator = 0;
 	TIMAClockAccumulator = 0;

@@ -40,7 +40,6 @@ public:
 	uint16_t Read16(uint16_t address);
 	void Write16(uint16_t address, uint16_t value);
 	OAMEntry* GetOAMEntry(uint8_t index);
-	void TriggerSPUTick();
 
 	MMC* mmc;
 	DMA& dma;
