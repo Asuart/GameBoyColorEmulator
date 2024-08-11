@@ -14,6 +14,12 @@ SPU::SPU(Bus& bus) : bus(bus) {
 void SPU::Reset() {
 	clockAccumulator = 0;
 	sampleCounter = 0;
+	for (uint32_t i = 0; i < 5; i++) {
+		sweepChannel.WriteRegister(i, 0);
+		toneChannel.WriteRegister(i, 0);
+		waveChannel.WriteRegister(i, 0);
+		noiseChannel.WriteRegister(i, 0);
+	}
 }
 
 void SPU::ClearSamples() {
