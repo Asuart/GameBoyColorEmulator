@@ -33,6 +33,8 @@ public:
 	uint32_t GetWidth();
 	uint32_t GetHeight();
 	FileAccessState SaveSettings();
+	float GetVolume();
+	void SetVolume(float value);
 
 protected:
 	uint32_t m_width;
@@ -46,6 +48,7 @@ protected:
 	bool m_isRebindingKey = false;
 	EmulatorButton m_keyToRebind = EmulatorButton::A;
 	bool m_paused = false;
+	float m_volume = 100.0f;
 
 	void UpdateScreen();
 	void UpdateKeyStates();

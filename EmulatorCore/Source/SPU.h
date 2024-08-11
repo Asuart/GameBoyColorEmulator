@@ -28,7 +28,7 @@ public:
 	uint32_t tickCounter;
 	uint32_t sampleCounter;
 
-	std::array<int16_t, spuSampleClock * 8> samples;
+	std::array<int16_t, spuSampleClock * 16> samples;
 
 	union {
 		struct {

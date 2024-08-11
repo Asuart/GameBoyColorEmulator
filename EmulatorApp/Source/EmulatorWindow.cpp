@@ -215,6 +215,18 @@ FileAccessState EmulatorWindow::LoadSettings() {
 		}
 	}
 
+	std::string volumeStr = getValue("volume");
+	if (volumeStr != "") {
+		try {
+			float volume = std::stof(volumeStr);
+			SetVolume(volume);
+		}
+		catch (std::exception e) {
+			std::cout << "Failed to load volume from settings file.\n";
+			std::cout << e.what() << "\n";
+		}
+	}
+
 	auto loadKeyMapping = [&](const std::string& name, EmulatorButton button) {
 		std::string value = getValue(name);
 		if (value == "") return;
@@ -265,6 +277,7 @@ FileAccessState EmulatorWindow::SaveSettings() {
 	writeLine("windowWidth " + std::to_string(m_width));
 	writeLine("windowHeight " + std::to_string(m_height));
 	writeLine("targetFPS " + std::to_string(m_targetFPS));
+	writeLine("volume " + std::to_string(m_volume));
 
 	writeLine("buttonA " + std::to_string(m_buttonMap.mappings[(uint32_t)EmulatorButton::A]));
 	writeLine("buttonB " + std::to_string(m_buttonMap.mappings[(uint32_t)EmulatorButton::B]));
@@ -319,6 +332,7 @@ void EmulatorWindow::Start() {
 			m_emulator.ResetFrameReadyFlag();
 		}
 
+		PixieNoise::FilterVolume(m_emulator.spu.GetSamples(), m_emulator.spu.GetSamplesCount(), m_volume / 100.0f);
 		streamer->QueueSamples(m_emulator.spu.GetSamples(), m_emulator.spu.GetSamplesCount(), spuSampleRate, true);
 		m_emulator.spu.ClearSamples();
 
@@ -409,4 +423,14 @@ uint32_t EmulatorWindow::GetWidth() {
 
 uint32_t EmulatorWindow::GetHeight() {
 	return m_height;
+}
+
+float EmulatorWindow::GetVolume() {
+	return m_volume;
+}
+
+void EmulatorWindow::SetVolume(float value) {
+	if (value < 0.0f) value = 0.0f;
+	else if (value > 200.0f) value = 200.0f;
+	m_volume = value;
 }

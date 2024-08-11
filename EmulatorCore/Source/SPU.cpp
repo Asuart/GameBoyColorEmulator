@@ -17,7 +17,7 @@ void SPU::Reset() {
 }
 
 void SPU::ClearSamples() {
-	uint32_t sampleAlign = sampleCounter % 4;
+	uint32_t sampleAlign = sampleCounter % 8;
 	if (sampleAlign) {
 		for (uint32_t i = 0; i < sampleAlign; i++) {
 			samples[i] = samples[sampleCounter - sampleAlign + i];
@@ -44,14 +44,20 @@ void SPU::Step(uint32_t cpuClocks) {
 			sweepChannel.Step();
 			waveChannel.Step();
 			noiseChannel.Step();
-			uint16_t sample = sweepChannel.Sample() + toneChannel.Sample() + waveChannel.Sample() + noiseChannel.Sample();
-			samples[sampleCounter % samples.size()] = scale * sample / 32;
+			int16_t sweepSample = sweepChannel.Sample();
+			int16_t toneSample = toneChannel.Sample();
+			int16_t waveSample = waveChannel.Sample();
+			int16_t noiseSample = noiseChannel.Sample();
+			int16_t leftSample = sweepSample * ch1Left + toneSample * ch2Left + waveSample * ch3Left + noiseSample * ch4Left;
+			int16_t rightSample = sweepSample * ch1Right + toneSample * ch2Right + waveSample * ch3Right + noiseSample * ch4Right;
+			samples[sampleCounter % samples.size()] = scale * leftSample / 32;
+			samples[(sampleCounter + 1) % samples.size()] = scale * rightSample / 32;
 		}
 		else {
 			samples[sampleCounter % samples.size()] = 0;
 		}
 		clockAccumulator -= spuSampleClock;
-		sampleCounter++;
+		sampleCounter += 2;
 	}
 }
 

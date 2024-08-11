@@ -119,9 +119,22 @@ EmulatorWindowUI::EmulatorWindowUI(EmulatorWindow& parent, GBCEmulator& emulator
 	createRebindButton("  Save:", EmulatorButton::SaveState, 172, 50);
 	createRebindButton("  Load:", EmulatorButton::LoadState, 172, 70);
 
+	controlsWindowContent->AddChild(new PixieUI::Text("Volume:", 184, 90, 0, 0, 112, defaultUIStyle));
+	controlsWindowContent->AddChild(new PixieUI::Button({ "-", [&](int32_t, int32_t) {
+		m_parent.SetVolume(m_parent.GetVolume() - 5.0f);
+		return true;
+		} }, 244, 90, 112, buttonStyle));
+	controlsWindowContent->AddChild(new PixieUI::DynamicText([&]() {
+		return std::to_string((int32_t)m_parent.GetVolume()) + "%";
+		}, 254, 90, 0, 0, 111, defaultUIStyle));
+	controlsWindowContent->AddChild(new PixieUI::Button({ "+", [&](int32_t, int32_t) {
+		m_parent.SetVolume(m_parent.GetVolume() + 5.0f);
+		return true;
+		} }, 283, 90, 112, buttonStyle));
+
 	controlsWindowContent->AddChild(new PixieUI::DynamicText([&]() {
 		return "Resolution: " + std::to_string(m_parent.GetWidth()) + "x" + std::to_string(m_parent.GetHeight());
-		}, 182, 90, 0, 0, 111, defaultUIStyle));
+		}, 184, 110, 0, 0, 111, defaultUIStyle));
 
 	controlsWindowContent->AddChild(new PixieUI::Button(PixieUI::ButtonConfig("Save Settings", [&](int32_t, int32_t) {
 		m_parent.SaveSettings();

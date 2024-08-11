@@ -146,6 +146,7 @@ namespace PixieNoise {
 		}
 
 		bool Play(int16_t* data, uint32_t samples, uint32_t sampleRate, bool waitToFinish = false) {
+			samples -= samples % 8;
 			if (waitToFinish) WaitToFinish();
 			else Stop();
 
@@ -155,7 +156,7 @@ namespace PixieNoise {
 				return false;
 			}
 
-			alBufferData(m_buffer, AL_FORMAT_MONO16, data, samples, sampleRate);
+			alBufferData(m_buffer, AL_FORMAT_STEREO16, data, samples, sampleRate);
 			if (!CheckALErrors()) {
 				std::cout << "OpenAL failed to load data.\n";
 				return false;
@@ -195,7 +196,7 @@ namespace PixieNoise {
 		}
 
 		bool QueueSamples(int16_t* data, uint32_t samples, uint32_t sampleRate, bool waitToQueue = false) {
-			samples -= samples % 4;
+			samples -= samples % 8;
 
 			ALint processedBuffers = 0;
 			alGetSourcei(m_source, AL_BUFFERS_PROCESSED, &processedBuffers);
@@ -232,7 +233,7 @@ namespace PixieNoise {
 			ALuint buffer = m_freeBuffers.front();
 			m_freeBuffers.pop();
 
-			alBufferData(buffer, AL_FORMAT_MONO16, data, samples * sizeof(int16_t), sampleRate);
+			alBufferData(buffer, AL_FORMAT_STEREO16, data, samples * sizeof(int16_t), sampleRate);
 			if (!CheckALErrors()) {
 				std::cout << "OpenAL failed to load data.\n";
 				return false;
@@ -338,5 +339,11 @@ namespace PixieNoise {
 			 data[i] = (int16_t)(scale * std::sin(rand()));
 		 }
 		 return data;
+	 }
+
+	 static void FilterVolume(int16_t* data, uint32_t samples, float scale) {
+		 for (uint32_t i = 0; i < samples; i++) {
+			 data[i] = (int16_t)(data[i] * scale);
+		 }
 	 }
 }
