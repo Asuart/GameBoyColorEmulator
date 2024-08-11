@@ -20,7 +20,7 @@ void PPU::Reset() {
 	WY = 0;
 	LCDC = 0x91;
 	STAT = 0x80;
-	BGP = 0xfc;
+	BGP = 0xe4;
 	OBP0 = 0xff;
 	OBP1 = 0xff;
 	BGPI = 0xff;
